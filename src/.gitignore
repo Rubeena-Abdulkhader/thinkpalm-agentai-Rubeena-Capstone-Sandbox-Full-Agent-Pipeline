@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.local
+output/*.db
+output/repos/
+# Keep sample outputs for demo — uncomment to ignore:
+# output/*.md
+# output/*.csv
+# output/*.feature
+*.egg-info/
+dist/
+build/
+.DS_Store
