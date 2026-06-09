@@ -1,0 +1,166 @@
+# SDLC Agent Pipeline
+
+**ThinkPalm Technologies — Project Management & SDLC Agent**
+
+## Overview
+
+An end-to-end **agentic SDLC pipeline** that ingests a raw client project intake brief and autonomously drives it through every software development phase — producing real artefacts at each stage and handing off to the next agent without manual intervention.
+
+Built for ThinkPalm internal and client project scenarios (maritime/Fleet Operations Dashboard sample included).
+
+### What It Does
+
+```
+Client Brief  →  INTAKE  →  DESIGN  →  PLANNING  →  QA  →  RELEASE
+                    ↓          ↓           ↓         ↓        ↓
+                 parsed     PRD.md    sprint.csv  tests   release docs
+```
+
+### Key Features
+
+- **5 collaborating agents** — Intake, Design, Planning, QA Strategy, Release
+- **LangGraph orchestration** — autonomous phase handoffs with shared state
+- **AutoGen agent team** — per-phase agent consultation
+- **Tool-calling** — brief parser, PRD generator, sprint planner, Jira API, GitHub API
+- **Memory** — short-term session + long-term SQLite persistence
+- **Dual UI** — FastAPI dashboard and Streamlit app
+- **Groq API** (optional) — AI-enhanced document generation with template fallback
+
+### Generated Artefacts
+
+| Artefact | Format |
+|----------|--------|
+| Product Requirements Document | `prd.md` |
+| Sprint Backlog (Jira-importable) | `sprint_backlog.csv` |
+| Test Strategy | `test_strategy.md` |
+| BDD Test Cases | `bdd_test_cases.feature` |
+| Release Checklist | `release_checklist.md` |
+| Client Release Notes | `release_notes.md` |
+
+## Tech Stack
+
+| Technology | Role |
+|------------|------|
+| **Python** | Core language |
+| **LangGraph** | Orchestrates SDLC phase graph (INTAKE → RELEASE) |
+| **AutoGen** | Multi-agent team consultation per phase |
+| **Groq API** | AI-enhanced PRD, test strategy, release docs |
+| **Jira REST API** | Pushes sprint backlog as Jira issues |
+| **GitHub API** | Publishes artefacts to a GitHub repo |
+| **SQLite** | Agent memory (`output/memory.db`) |
+| **FastAPI** | Web dashboard (`run_studio.py`) |
+| **Streamlit** | Alternative UI (`run_streamlit.py`) |
+
+## Quick Start
+
+### 1. Install
+
+```bash
+cd "d:\LAB 3"
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 2. Configure API keys (copy `.env.example` → `.env`)
+
+```bash
+copy .env.example .env
+```
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `GROQ_API_KEY` | Recommended | Groq API for AI-enhanced documents |
+| `GROQ_MODEL` | Optional | Default: `llama-3.3-70b-versatile` |
+| `JIRA_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN` | Optional | Push stories to Jira |
+| `GITHUB_TOKEN`, `GITHUB_REPO` | Optional | Publish artefacts to GitHub |
+
+> Without `GROQ_API_KEY`, the pipeline runs using template fallbacks. Jira/GitHub steps are skipped if not configured.
+
+### 3. Run CLI
+
+```bash
+python run_pipeline.py
+```
+
+### 4. Run FastAPI Studio UI
+
+```bash
+python run_studio.py
+```
+
+Open the URL shown (e.g. `http://localhost:3000`).
+
+### 5. Run Streamlit UI
+
+```bash
+python run_streamlit.py
+```
+
+Open `http://localhost:8501`.
+
+## Architecture
+
+```
+Client Brief
+    │
+    ▼
+┌─────────────────────────────────────────┐
+│  LangGraph StateGraph                   │
+│  intake → design → planning → qa → release │
+└─────────────────────────────────────────┘
+    │ each node consults AutoGen agents
+    ▼
+┌──────────┐  ┌──────────┐  ┌──────────┐
+│ SQLite   │  │ Jira API │  │ GitHub   │
+│ Memory   │  │ (plan)   │  │ API (rel)│
+└──────────┘  └──────────┘  └──────────┘
+```
+
+![Architecture Diagram](docs/architecture_diagram.png)
+
+## Agents & Tools
+
+| Phase | Agent | Tools |
+|-------|-------|-------|
+| INTAKE | IntakeAgent | `brief_parser` |
+| DESIGN | DesignAgent | `prd_generator` + Groq |
+| PLANNING | PlanningAgent | `sprint_planner`, `jira_api` |
+| QA | QAStrategyAgent | `qa_generator` + Groq |
+| RELEASE | ReleaseAgent | `release_packager`, `github_api` + Groq |
+
+## Output Artefacts
+
+| File | Description |
+|------|-------------|
+| `output/prd.md` | Product Requirements Document |
+| `output/sprint_backlog.csv` | Jira-importable sprint backlog |
+| `output/test_strategy.md` | QA test strategy |
+| `output/bdd_test_cases.feature` | Gherkin BDD test cases |
+| `output/release_checklist.md` | Pre-release checklist |
+| `output/release_notes.md` | Client release notes |
+| `output/memory.db` | SQLite agent memory |
+
+## Project Structure
+
+```
+├── .env.example
+├── requirements.txt
+├── run_pipeline.py       # CLI
+├── run_studio.py           # FastAPI UI
+├── run_streamlit.py        # Streamlit UI
+├── sample_input/client_brief.md
+├── src/
+│   ├── graph/              # LangGraph orchestration
+│   ├── autogen/            # AutoGen agent team
+│   ├── llm/                # Groq API client
+│   ├── agents/             # SDLC phase agents
+│   ├── tools/              # Tools incl. Jira + GitHub APIs
+│   ├── memory/             # SQLite store
+│   └── ui/                 # FastAPI + Streamlit
+└── output/
+```
+
+## License
+
+MIT — ThinkPalm Technologies
